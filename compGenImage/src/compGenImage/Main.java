@@ -1,7 +1,6 @@
 package compGenImage;
 
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,73 +12,81 @@ import javax.swing.JComponent;
 @SuppressWarnings("serial")
 class Main extends JComponent {
 	static int C = 100; // number of spawn per generation
-	static int tol = 20; //how close in color for fitness
-	static double minMutateRate = 0.001; //mimimun mutation rate
+	static int tol = 20; // how close in color for fitness
+	static double minMutateRate = 0.001; // mimimun mutation rate
 	static Random rand = new Random();
-	boolean drawn = false;
 	final static int HEIGHT = 50;
 	final static int WIDTH = 50;
 	static int imageHeight;
 	static int imageWidth;
-	static int[] imageData;
-	static int[][] generation;
+	static int[] working;
+	static int[] p1;
+	static int[] p2;
+	static int[][] generation; // TODO implement generation[][]
 	static int iter = 0;
 
-	public void paint(Graphics g) {
-		System.out.println("Run");
-		int i = 0;
-		BufferedImage image = new BufferedImage(WIDTH, HEIGHT,
-				BufferedImage.TYPE_INT_RGB);
-		if (!drawn) {
-			drawn = true;
-			for (int y = 0; y < HEIGHT; y++) {
-				for (int x = 0; x < WIDTH; x++) {
-					// image.setRGB(x, y, (randomGenerator.nextInt(16777215) +
-					// 1));
-					int red = rand.nextInt(255) + 1;
-					int green = rand.nextInt(255) + 1;
-					int blue = rand.nextInt(255) + 1;
-					imageData[i++] = (red << 16) | (green << 8) | blue;
+	public static void main(String[] args) {
+		// setColors();
+		readImage("art1900");
+		saveImage(working);
+		geneticLoop();
+
+	}
+
+	static void geneticLoop() {
+		System.out.println("Initializing ARTificial Creativity");
+		int oldFitness = 0;
+		while (fitness(working) < 19800) {
+			double rate = newMutateRate();
+			iter++;
+			if (iter % 100 == 0) {
+				System.out.println((iter - 100) + ": " + "fitness: " + fitness(working) + ", rate: " + rate);
+			}
+			if (oldFitness + 100 <= fitness(working)) {
+				saveImage(working);
+				System.out.println("saved image");
+				oldFitness = oldFitness + 100;
+			}
+			int[] bestSpawn = new int[working.length];
+			int bestFit = 0;
+			for (int i = 0; i < C; i++) {
+				int[] spawn = mutate(working, rate);
+				int fitness = fitness(spawn);
+				if (fitness >= bestFit) {
+					bestSpawn = spawn;
+					bestFit = fitness;
 				}
 			}
+			// System.out.println(bestFit);
+			working = bestFit > fitness(working) ? bestSpawn : working;
+
 		}
-		image.setRGB(0, 0, WIDTH, HEIGHT, imageData, 0, WIDTH);
-		g.drawImage(image, 0, 0, this);
-		Color myColor = new Color(imageData[1]);
-		System.out.println(myColor.getRed());
+		System.out.println(working + ", " + iter);
 	}
-
-	public static void main(String[] args) {
-		// JFrame frame = new JFrame("main");
-		// frame.getContentPane().add(new Main());
-		// frame.setSize(HEIGHT, WIDTH);
-		// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// frame.setVisible(true);
-		setColors();
-		//readImage("art1500");
-		saveImage(imageData);
-		startGenetic();
-
-	}
+	
+	//Support functions
 
 	public static void setColors() {
-		imageData = new int[WIDTH * HEIGHT];
+		working = new int[WIDTH * HEIGHT];
+		p1 = new int [WIDTH * HEIGHT];
+		p2 = new int [WIDTH * HEIGHT];
 		imageHeight = HEIGHT;
 		imageWidth = WIDTH;
 		System.out.println("Run");
 		int i = 0;
-		BufferedImage image = new BufferedImage(imageWidth, imageHeight,
-				BufferedImage.TYPE_INT_RGB);
+		//BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 		for (int y = 0; y < imageHeight; y++) {
 			for (int x = 0; x < imageWidth; x++) {
 				// image.setRGB(x, y, (randomGenerator.nextInt(16777215) + 1));
 				int red = rand.nextInt(255) + 1;
 				int green = rand.nextInt(255) + 1;
 				int blue = rand.nextInt(255) + 1;
-				imageData[i++] = (red << 16) | (green << 8) | blue;
+				working[i++] = (red << 16) | (green << 8) | blue;
 			}
 		}
-		image.setRGB(0, 0, imageWidth, imageHeight, imageData, 0, imageWidth);
+		p1 = working;
+		p2 = working;
+		//image.setRGB(0, 0, imageWidth, imageHeight, working, 0, imageWidth);
 	}
 
 	static void readImage(String file_name) {
@@ -93,57 +100,28 @@ class Main extends JComponent {
 		}
 		imageHeight = img.getHeight();
 		imageWidth = img.getWidth();
-		imageData = new int[imageHeight * imageWidth];
-		for (int y = 0; y < imageHeight; y++) {
-			for (int x = 0; x < imageWidth; x++) {
-				imageData[i++] = img.getRGB(x, y);
-			}
-		}
+		working = new int[imageHeight * imageWidth];
+		p1 = new int [imageHeight * imageWidth];
+		p2 = new int [imageHeight * imageWidth];
+		p1 = working;
+		p2 = working;
+		//for (int y = 0; y < imageHeight; y++) {
+		//	for (int x = 0; x < imageWidth; x++) {
+		//		working[i++] = img.getRGB(x, y);
+		//	}
+		//}
 
 	}
 
-	static void saveImage(int[] list) {
+	static void saveImage(int[] imageData) {
 		try {
-			BufferedImage image = new BufferedImage(imageWidth, imageHeight,
-					BufferedImage.TYPE_INT_RGB);
+			BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 			// retrieve image
-			image.setRGB(0, 0, imageWidth, imageHeight, list, 0, imageWidth);
-			ImageIO.write(image, "png", new File("art" + fitness(imageData) + ".png"));
+			image.setRGB(0, 0, imageWidth, imageHeight, imageData, 0, imageWidth);
+			ImageIO.write(image, "png", new File("art" + fitness(working) + ".png"));
 		} catch (IOException e) {
 			System.out.println("---> CAN'T SAVE FILE <---");
 		}
-	}
-
-	static void startGenetic() {
-		System.out.println("Initializing ARTificial Creativity");
-		int oldFitness = 0;
-		while (fitness(imageData) < 19800) {
-			double rate = newMutateRate();
-			iter++;
-			if (iter % 100 == 0) {
-				System.out.println((iter-100) + ": " + "fitness: "
-						+ fitness(imageData) + ", rate: " + rate);
-			}
-			if (oldFitness + 100 <= fitness(imageData)) {
-				saveImage(imageData);
-				System.out.println("saved image");
-				oldFitness = oldFitness + 100;
-			}
-			int[] bestSpawn = new int[imageData.length];
-			int bestFit = 0;
-			for (int i = 0; i < C; i++) {
-				int[] spawn = mutate(imageData, rate);
-				int fitness = fitness(spawn);
-				if (fitness >= bestFit) {
-					bestSpawn = spawn;
-					bestFit = fitness;
-				}
-			}
-			// System.out.println(bestFit);
-			imageData = bestFit > fitness(imageData) ? bestSpawn : imageData;
-
-		}
-		System.out.println(imageData + ", " + iter);
 	}
 
 	static int fitness(int[] list) {
@@ -178,7 +156,7 @@ class Main extends JComponent {
 	}
 
 	static double newMutateRate() {
-		double r = (imageData.length - (200 * fitness(imageData)))/ (imageData.length * (1 - minMutateRate));
+		double r = (working.length - (200 * fitness(working))) / (working.length * (1 - minMutateRate));
 		if (r < minMutateRate) {
 			return minMutateRate;
 		} else {
@@ -187,11 +165,10 @@ class Main extends JComponent {
 		}
 	}
 
-	static int[] mutate(int[] imageData2, double rate) {
-		int[] retVal = new int[imageData2.length];
-		for (int i = 0; i < imageData2.length; i++) {
-			retVal[i] = (rand.nextDouble() <= rate) ? (rand.nextInt(16777215) + 1)
-					: imageData2[i];
+	static int[] mutate(int[] imageData, double rate) {
+		int[] retVal = new int[imageData.length];
+		for (int i = 0; i < imageData.length; i++) {
+			retVal[i] = (rand.nextDouble() <= rate) ? (rand.nextInt(16777215) + 1) : imageData[i];
 		}
 		return retVal;
 	}
