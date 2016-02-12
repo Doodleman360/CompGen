@@ -13,15 +13,16 @@ import javax.swing.JComponent;
 @SuppressWarnings("serial")
 class Main extends JComponent {
 	static int C = 100; // number of spawn per generation
-	static double minMutateRate = 0.001;
+	static int tol = 20; //how close in color for fitness
+	static double minMutateRate = 0.001; //mimimun mutation rate
 	static Random rand = new Random();
-	static int userScore = 1;
 	boolean drawn = false;
 	final static int HEIGHT = 50;
 	final static int WIDTH = 50;
 	static int imageHeight;
 	static int imageWidth;
 	static int[] imageData;
+	static int[][] generation;
 	static int iter = 0;
 
 	public void paint(Graphics g) {
@@ -55,7 +56,7 @@ class Main extends JComponent {
 		// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		// frame.setVisible(true);
 		setColors();
-		// readImage("Landscape");
+		//readImage("art1500");
 		saveImage(imageData);
 		startGenetic();
 
@@ -85,7 +86,7 @@ class Main extends JComponent {
 		int i = 0;
 		BufferedImage img = null;
 		try {
-			img = ImageIO.read(new File(file_name + ".jpg"));
+			img = ImageIO.read(new File(file_name + ".png"));
 		} catch (IOException e) {
 			System.out.println("---> CAN'T LOAD FILE <---");
 			System.exit(0);
@@ -115,16 +116,18 @@ class Main extends JComponent {
 
 	static void startGenetic() {
 		System.out.println("Initializing ARTificial Creativity");
-		while (userScore < 100) {
+		int oldFitness = 0;
+		while (fitness(imageData) < 19800) {
 			double rate = newMutateRate();
 			iter++;
 			if (iter % 100 == 0) {
-				System.out.println(iter + ": " + "fitness: "
+				System.out.println((iter-100) + ": " + "fitness: "
 						+ fitness(imageData) + ", rate: " + rate);
-				if (iter % 5000 == 0) {
-					saveImage(imageData);
-					System.out.println("saved image");
-				}
+			}
+			if (oldFitness + 100 <= fitness(imageData)) {
+				saveImage(imageData);
+				System.out.println("saved image");
+				oldFitness = oldFitness + 100;
 			}
 			int[] bestSpawn = new int[imageData.length];
 			int bestFit = 0;
@@ -149,24 +152,24 @@ class Main extends JComponent {
 			if (i / imageWidth != 1) {
 				Color color1 = new Color(list[i]);
 				Color color2 = new Color(list[i + 1]);
-				if ((Math.abs(color1.getRed() - color2.getRed()) < 10)
-						&& (Math.abs(color1.getGreen() - color2.getGreen()) < 10)
-						&& (Math.abs(color1.getBlue() - color2.getBlue()) < 10)
-						&& (Math.abs(color1.getRed() - color2.getRed()) > -10)
-						&& (Math.abs(color1.getGreen() - color2.getGreen()) > -10)
-						&& (Math.abs(color1.getBlue() - color2.getBlue()) > -10)) {
+				if ((Math.abs(color1.getRed() - color2.getRed()) < tol)
+						&& (Math.abs(color1.getGreen() - color2.getGreen()) < tol)
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) < tol)
+						&& (Math.abs(color1.getRed() - color2.getRed()) > -tol)
+						&& (Math.abs(color1.getGreen() - color2.getGreen()) > -tol)
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) > -tol)) {
 					retVal++;
 				}
 			}
 			if (i < list.length - imageWidth) {
 				Color color1 = new Color(list[i]);
 				Color color2 = new Color(list[i + imageWidth]);
-				if ((Math.abs(color1.getRed() - color2.getRed()) < 10)
-						&& (Math.abs(color1.getGreen() - color2.getGreen()) < 10)
-						&& (Math.abs(color1.getBlue() - color2.getBlue()) < 10)
-						&& (Math.abs(color1.getRed() - color2.getRed()) > -10)
-						&& (Math.abs(color1.getGreen() - color2.getGreen()) > -10)
-						&& (Math.abs(color1.getBlue() - color2.getBlue()) > -10)) {
+				if ((Math.abs(color1.getRed() - color2.getRed()) < tol)
+						&& (Math.abs(color1.getGreen() - color2.getGreen()) < tol)
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) < tol)
+						&& (Math.abs(color1.getRed() - color2.getRed()) > -tol)
+						&& (Math.abs(color1.getGreen() - color2.getGreen()) > -tol)
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) > -tol)) {
 					retVal++;
 				}
 			}
@@ -175,7 +178,7 @@ class Main extends JComponent {
 	}
 
 	static double newMutateRate() {
-		double r = (imageData.length - (350 * fitness(imageData)))/ (imageData.length * (1 - minMutateRate));
+		double r = (imageData.length - (200 * fitness(imageData)))/ (imageData.length * (1 - minMutateRate));
 		if (r < minMutateRate) {
 			return minMutateRate;
 		} else {
