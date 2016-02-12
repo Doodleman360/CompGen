@@ -14,67 +14,72 @@ class Main extends JComponent {
 	static int C = 100; // number of spawn per generation
 	static int tol = 20; // how close in color for fitness
 	static double minMutateRate = 0.001; // mimimun mutation rate
+	static int crossNumber = 5;
 	static Random rand = new Random();
 	final static int HEIGHT = 50;
 	final static int WIDTH = 50;
 	static int imageHeight;
 	static int imageWidth;
 	static int[] working;
-	static int[] p1;
-	static int[] p2;
 	static int[][] generation; // TODO implement generation[][]
 	static int iter = 0;
 
 	public static void main(String[] args) {
-		// setColors();
-		readImage("art1900");
-		saveImage(working);
+		setColors();
+		// readImage("art1900");
+		saveImage(working, 0);
+		System.out.println(iter + ": saved image");
 		geneticLoop();
 
 	}
 
 	static void geneticLoop() {
 		System.out.println("Initializing ARTificial Creativity");
-		int oldFitness = 0;
+		int saveFitness = 0;
+		int disFitness = 0;
+		int[] p1, p2;
+		p1 = working;
+		p2 = working;
+		generation = new int[C][working.length];
 		while (fitness(working) < 19800) {
 			double rate = newMutateRate();
 			iter++;
-			if (iter % 100 == 0) {
-				System.out.println((iter - 100) + ": " + "fitness: " + fitness(working) + ", rate: " + rate);
+			//if(iter % 100 == 0) {
+			//	System.out.println((iter) + ": " + "fitness: " + fitness(working) + ", rate: " + rate);
+			//}
+			if (disFitness + 10 <= fitness(working)) {
+				System.out.println((iter) + ": " + "fitness: " + fitness(working) + ", rate: " + rate);
+				disFitness = disFitness + 10;
 			}
-			if (oldFitness + 100 <= fitness(working)) {
-				saveImage(working);
-				System.out.println("saved image");
-				oldFitness = oldFitness + 100;
+			if (saveFitness + 500 <= fitness(working)) {
+				saveFitness = saveFitness + 500;
+				saveImage(working, saveFitness);
+				System.out.println(iter + ": saved image");
 			}
-			int[] bestSpawn = new int[working.length];
+
 			int bestFit = 0;
 			for (int i = 0; i < C; i++) {
-				int[] spawn = mutate(working, rate);
-				int fitness = fitness(spawn);
-				if (fitness >= bestFit) {
-					bestSpawn = spawn;
-					bestFit = fitness;
+				generation[i] = mutate(crossover(p1, p2), rate);
+				if (fitness(generation[i]) > bestFit && fitness(generation[i]) > fitness(working)) {
+					bestFit = fitness(generation[i]);
+					p2 = p1;
+					p1 = generation[i];
 				}
 			}
-			// System.out.println(bestFit);
-			working = bestFit > fitness(working) ? bestSpawn : working;
+			working = bestFit > fitness(working) ? p1 : working;
 
 		}
 		System.out.println(working + ", " + iter);
 	}
-	
-	//Support functions
+
+	// Support functions
 
 	public static void setColors() {
 		working = new int[WIDTH * HEIGHT];
-		p1 = new int [WIDTH * HEIGHT];
-		p2 = new int [WIDTH * HEIGHT];
 		imageHeight = HEIGHT;
 		imageWidth = WIDTH;
 		System.out.println("Run");
 		int i = 0;
-		//BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 		for (int y = 0; y < imageHeight; y++) {
 			for (int x = 0; x < imageWidth; x++) {
 				// image.setRGB(x, y, (randomGenerator.nextInt(16777215) + 1));
@@ -84,13 +89,9 @@ class Main extends JComponent {
 				working[i++] = (red << 16) | (green << 8) | blue;
 			}
 		}
-		p1 = working;
-		p2 = working;
-		//image.setRGB(0, 0, imageWidth, imageHeight, working, 0, imageWidth);
 	}
 
 	static void readImage(String file_name) {
-		int i = 0;
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(file_name + ".png"));
@@ -100,25 +101,14 @@ class Main extends JComponent {
 		}
 		imageHeight = img.getHeight();
 		imageWidth = img.getWidth();
-		working = new int[imageHeight * imageWidth];
-		p1 = new int [imageHeight * imageWidth];
-		p2 = new int [imageHeight * imageWidth];
-		p1 = working;
-		p2 = working;
-		//for (int y = 0; y < imageHeight; y++) {
-		//	for (int x = 0; x < imageWidth; x++) {
-		//		working[i++] = img.getRGB(x, y);
-		//	}
-		//}
-
 	}
 
-	static void saveImage(int[] imageData) {
+	static void saveImage(int[] imageData, int name) {
 		try {
 			BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 			// retrieve image
 			image.setRGB(0, 0, imageWidth, imageHeight, imageData, 0, imageWidth);
-			ImageIO.write(image, "png", new File("art" + fitness(working) + ".png"));
+			ImageIO.write(image, "png", new File("art" + name + ".png"));
 		} catch (IOException e) {
 			System.out.println("---> CAN'T SAVE FILE <---");
 		}
@@ -156,7 +146,7 @@ class Main extends JComponent {
 	}
 
 	static double newMutateRate() {
-		double r = (working.length - (200 * fitness(working))) / (working.length * (1 - minMutateRate));
+		double r = (working.length - (60 * fitness(working))) / (working.length * (1 - minMutateRate));
 		if (r < minMutateRate) {
 			return minMutateRate;
 		} else {
@@ -171,5 +161,19 @@ class Main extends JComponent {
 			retVal[i] = (rand.nextDouble() <= rate) ? (rand.nextInt(16777215) + 1) : imageData[i];
 		}
 		return retVal;
+	}
+
+	static int[] crossover(int[] parent1, int[] parent2) {
+		int cN = rand.nextInt(crossNumber);
+		int[] child = parent1;
+		for (int i = 0; i < cN; i++) {
+			int mult = i * child.length / cN;
+			for (int j = 0; j < child.length / cN; j++) {
+				if (i % 2 == 0) {
+					child[j + mult] = parent2[j + mult];
+				}
+			}
+		}
+		return child;
 	}
 }
