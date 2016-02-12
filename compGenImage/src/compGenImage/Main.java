@@ -12,13 +12,13 @@ import javax.swing.JComponent;
 
 @SuppressWarnings("serial")
 class Main extends JComponent {
-	static int C = 20; // number of spawn per generation
-	static double minMutateRate = 0.09;
+	static int C = 100; // number of spawn per generation
+	static double minMutateRate = 0.001;
 	static Random rand = new Random();
 	static int userScore = 1;
 	boolean drawn = false;
-	final static int HEIGHT = 300;
-	final static int WIDTH = 300;
+	final static int HEIGHT = 50;
+	final static int WIDTH = 50;
 	static int imageHeight;
 	static int imageWidth;
 	static int[] imageData;
@@ -107,7 +107,7 @@ class Main extends JComponent {
 					BufferedImage.TYPE_INT_RGB);
 			// retrieve image
 			image.setRGB(0, 0, imageWidth, imageHeight, list, 0, imageWidth);
-			ImageIO.write(image, "png", new File("art" + iter + ".png"));
+			ImageIO.write(image, "png", new File("art" + fitness(imageData) + ".png"));
 		} catch (IOException e) {
 			System.out.println("---> CAN'T SAVE FILE <---");
 		}
@@ -121,7 +121,7 @@ class Main extends JComponent {
 			if (iter % 100 == 0) {
 				System.out.println(iter + ": " + "fitness: "
 						+ fitness(imageData) + ", rate: " + rate);
-				if (iter % 1000 == 0) {
+				if (iter % 5000 == 0) {
 					saveImage(imageData);
 					System.out.println("saved image");
 				}
@@ -151,7 +151,10 @@ class Main extends JComponent {
 				Color color2 = new Color(list[i + 1]);
 				if ((Math.abs(color1.getRed() - color2.getRed()) < 10)
 						&& (Math.abs(color1.getGreen() - color2.getGreen()) < 10)
-						&& (Math.abs(color1.getBlue() - color2.getBlue()) < 10)) {
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) < 10)
+						&& (Math.abs(color1.getRed() - color2.getRed()) > -10)
+						&& (Math.abs(color1.getGreen() - color2.getGreen()) > -10)
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) > -10)) {
 					retVal++;
 				}
 			}
@@ -160,7 +163,10 @@ class Main extends JComponent {
 				Color color2 = new Color(list[i + imageWidth]);
 				if ((Math.abs(color1.getRed() - color2.getRed()) < 10)
 						&& (Math.abs(color1.getGreen() - color2.getGreen()) < 10)
-						&& (Math.abs(color1.getBlue() - color2.getBlue()) < 10)) {
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) < 10)
+						&& (Math.abs(color1.getRed() - color2.getRed()) > -10)
+						&& (Math.abs(color1.getGreen() - color2.getGreen()) > -10)
+						&& (Math.abs(color1.getBlue() - color2.getBlue()) > -10)) {
 					retVal++;
 				}
 			}
@@ -169,7 +175,7 @@ class Main extends JComponent {
 	}
 
 	static double newMutateRate() {
-		double r = (imageData.length - (555 * fitness(imageData)))/ (imageData.length * (1 - minMutateRate));
+		double r = (imageData.length - (350 * fitness(imageData)))/ (imageData.length * (1 - minMutateRate));
 		if (r < minMutateRate) {
 			return minMutateRate;
 		} else {
