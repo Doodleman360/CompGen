@@ -11,17 +11,18 @@ import javax.swing.JComponent;
 
 @SuppressWarnings("serial")
 class Main extends JComponent {
-	static int C = 100; // number of spawn per generation
+	static int C = 50; // number of spawn per generation
 	static int tol = 20; // how close in color for fitness
 	static double minMutateRate = 0.001; // mimimun mutation rate
-	static int crossNumber = 5;
+	static int fitnessToMinRate = 200;
+	static int crossNumber = 2;
 	static Random rand = new Random();
 	final static int HEIGHT = 50;
 	final static int WIDTH = 50;
 	static int imageHeight;
 	static int imageWidth;
 	static int[] working;
-	static int[][] generation; // TODO implement generation[][]
+	static int[][] generation;
 	static int iter = 0;
 
 	public static void main(String[] args) {
@@ -30,7 +31,6 @@ class Main extends JComponent {
 		saveImage(working, 0);
 		System.out.println(iter + ": saved image");
 		geneticLoop();
-
 	}
 
 	static void geneticLoop() {
@@ -40,13 +40,14 @@ class Main extends JComponent {
 		int[] p1, p2;
 		p1 = working;
 		p2 = working;
-		generation = new int[C][working.length];
+		generation = new int[C + 2][working.length];
 		while (fitness(working) < 19800) {
 			double rate = newMutateRate();
 			iter++;
-			//if(iter % 100 == 0) {
-			//	System.out.println((iter) + ": " + "fitness: " + fitness(working) + ", rate: " + rate);
-			//}
+			// if (iter % 100 == 0) {
+			// System.out.println((iter) + ": " + "fitness: " + fitness(working)
+			// + ", rate: " + rate);
+			// }
 			if (disFitness + 10 <= fitness(working)) {
 				System.out.println((iter) + ": " + "fitness: " + fitness(working) + ", rate: " + rate);
 				disFitness = disFitness + 10;
@@ -57,8 +58,10 @@ class Main extends JComponent {
 				System.out.println(iter + ": saved image");
 			}
 
-			int bestFit = 0;
-			for (int i = 0; i < C; i++) {
+			generation[0] = p1;
+			generation[1] = p2;
+			int bestFit = fitness(p1);
+			for (int i = 2; i < C + 2; i++) {
 				generation[i] = mutate(crossover(p1, p2), rate);
 				if (fitness(generation[i]) > bestFit && fitness(generation[i]) > fitness(working)) {
 					bestFit = fitness(generation[i]);
@@ -67,7 +70,6 @@ class Main extends JComponent {
 				}
 			}
 			working = bestFit > fitness(working) ? p1 : working;
-
 		}
 		System.out.println(working + ", " + iter);
 	}
@@ -82,7 +84,6 @@ class Main extends JComponent {
 		int i = 0;
 		for (int y = 0; y < imageHeight; y++) {
 			for (int x = 0; x < imageWidth; x++) {
-				// image.setRGB(x, y, (randomGenerator.nextInt(16777215) + 1));
 				int red = rand.nextInt(255) + 1;
 				int green = rand.nextInt(255) + 1;
 				int blue = rand.nextInt(255) + 1;
@@ -146,12 +147,11 @@ class Main extends JComponent {
 	}
 
 	static double newMutateRate() {
-		double r = (working.length - (60 * fitness(working))) / (working.length * (1 - minMutateRate));
+		double r = map(fitnessToMinRate, 0, minMutateRate, 0.01, fitness(working));
 		if (r < minMutateRate) {
 			return minMutateRate;
 		} else {
 			return r;
-			// return 0.5;
 		}
 	}
 
@@ -175,5 +175,12 @@ class Main extends JComponent {
 			}
 		}
 		return child;
+	}
+
+	static double map(double oldMin, double oldMax, double newMin, double newMax, double oldValue) {
+		double oldRange = (oldMax - oldMin);
+		double newRange = (newMax - newMin);
+		double newValue = (((oldValue - oldMin) * newRange) / oldRange) + newMin;
+		return newValue;
 	}
 }
