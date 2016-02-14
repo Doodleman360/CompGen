@@ -10,8 +10,7 @@ public class Main {
 		
 		EvolutionEngine<int[]> engine;
 		
-		GeneticImage genI = new GeneticImage(50, 20, 0.001, 0.01, 200, 2);
-		genI.geneticLoop();
+		GeneticImage genI = new GeneticImage();
 
 	}
 

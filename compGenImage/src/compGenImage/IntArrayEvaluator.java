@@ -6,7 +6,7 @@ import java.util.List;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
 
 public class IntArrayEvaluator implements FitnessEvaluator<int[]> {
-    private final int tol = 10;
+    private final int tol = 20;
 
     public double getFitness(int[] candidate, List<? extends int[]> population) {
 	double fitness = 0;
