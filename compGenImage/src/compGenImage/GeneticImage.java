@@ -9,13 +9,19 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
+import org.uncommons.watchmaker.framework.CandidateFactory;
+import org.uncommons.watchmaker.framework.EvolutionEngine;
+
 @SuppressWarnings("serial")
-class Main extends JComponent {
+class GeneticImage extends JComponent {
+	// twekable
 	static int C = 50; // number of spawn per generation
 	static int tol = 20; // how close in color for fitness
 	static double minMutateRate = 0.001; // mimimun mutation rate
+	static double maxMutateRate = 0.01;
 	static int fitnessToMinRate = 200;
 	static int crossNumber = 2;
+	// nonTwekable
 	static Random rand = new Random();
 	final static int HEIGHT = 50;
 	final static int WIDTH = 50;
@@ -25,15 +31,30 @@ class Main extends JComponent {
 	static int[][] generation;
 	static int iter = 0;
 
-	public static void main(String[] args) {
+	GeneticImage(int C, int tol, double minMutateRate, double maxMutateRate, int fitnessToMinRate, int crossNumber) {
+		GeneticImage.C = C;
+		GeneticImage.tol = tol;
+		GeneticImage.minMutateRate = minMutateRate;
+		GeneticImage.maxMutateRate = maxMutateRate;
+		GeneticImage.fitnessToMinRate = fitnessToMinRate;
+		GeneticImage.crossNumber = crossNumber;
+		
+		int[] ints = new int[16777216];
+		for (int i = 0; i < ints.length;i++) {
+			ints[i] = i;
+		}
+		CandidateFactory<int[]> factory = new IntArrayFactory(ints , 2500);
+		EvolutionEngine<int[]> engine;
+		
 		setColors();
 		// readImage("art1900");
 		saveImage(working, 0);
 		System.out.println(iter + ": saved image");
-		geneticLoop();
+		//geneticLoop();
 	}
 
-	static void geneticLoop() {
+
+	void geneticLoop() {
 		System.out.println("Initializing ARTificial Creativity");
 		int saveFitness = 0;
 		int disFitness = 0;
@@ -147,7 +168,7 @@ class Main extends JComponent {
 	}
 
 	static double newMutateRate() {
-		double r = map(fitnessToMinRate, 0, minMutateRate, 0.01, fitness(working));
+		double r = map(fitnessToMinRate, 0, minMutateRate, maxMutateRate, fitness(working));
 		if (r < minMutateRate) {
 			return minMutateRate;
 		} else {
