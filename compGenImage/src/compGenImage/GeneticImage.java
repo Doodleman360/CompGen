@@ -110,15 +110,15 @@ class GeneticImage extends JComponent {
 
 	int[] imageData = engine.evolve(C, 1, new Stagnation(stagnation, true));
 	//saveImage(imageData);
-	System.out.println("Finished");
+	//System.out.println("Finished");
 	return imageData;
     }
 
-    public void saveImage(int[] imageData, double name) {
+    public void saveImage(int[] imageData, String name) {
 	try {
 	    BufferedImage image = new BufferedImage(DIMENSIONS, DIMENSIONS, BufferedImage.TYPE_INT_RGB);
 	    image.setRGB(0, 0, DIMENSIONS, DIMENSIONS, imageData, 0, DIMENSIONS);
-	    ImageIO.write(image, "png", new File("art "+ (int) name +".png"));
+	    ImageIO.write(image, "png", new File("art "+ name +".png"));
 	} catch (IOException e) {
 	    System.out.println("---> CAN'T SAVE FILE <---");
 	}
