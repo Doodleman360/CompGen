@@ -27,7 +27,7 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    final static int DIMENTIONS = 50;
+    final static int DIMENSIONS = 50;
     static int stagnation = 1000;
     static int keepAfterTruncat = 2;
     static int C = 100;
@@ -38,29 +38,40 @@ class GeneticImage extends JComponent {
      * default setting all round.
      */
     GeneticImage() {
-	startGeneticA();
+	//startGeneticA();
     }
-    
+
     /**
      * more options.
-     * @param C The number of organisms per generation.
-     * @param mutateProb The probability of mutation.
-     * @param displayIter How often to display generation number and fitness.
+     * 
+     * @param C
+     *            The number of organisms per generation.
+     * @param mutateProb
+     *            The probability of mutation.
+     * @param displayIter
+     *            How often to display generation number and fitness.
      */
     GeneticImage(int C, double mutateProb, int displayIter) {
 	GeneticImage.C = C;
 	GeneticImage.mutateProb = mutateProb;
 	GeneticImage.displayIter = displayIter;
-	startGeneticA();
+	//startGeneticA();
     }
-    
+
     /**
      * Even more options.
-     * @param C The number of organisms per generation.
-     * @param mutateProb The probability of mutation.
-     * @param displayIter How often to display generation number and fitness.
-     * @param keepAfterTruncat The number of organisms to keep after truncation.
-     * @param stagnation The number of generations after nothing happens, the engine will end.
+     * 
+     * @param C
+     *            The number of organisms per generation.
+     * @param mutateProb
+     *            The probability of mutation.
+     * @param displayIter
+     *            How often to display generation number and fitness.
+     * @param keepAfterTruncat
+     *            The number of organisms to keep after truncation.
+     * @param stagnation
+     *            The number of generations after nothing happens, the engine
+     *            will end.
      */
     GeneticImage(int C, double mutateProb, int displayIter, int keepAfterTruncat, int stagnation) {
 	GeneticImage.C = C;
@@ -68,23 +79,22 @@ class GeneticImage extends JComponent {
 	GeneticImage.displayIter = displayIter;
 	GeneticImage.keepAfterTruncat = keepAfterTruncat;
 	GeneticImage.stagnation = stagnation;
-	startGeneticA();
+	//startGeneticA();
     }
-    
-    
-    static void startGeneticA() {
+
+    int[] startGeneticA() {
 	int[] ints = new int[16777216];
 	for (int i = 0; i < ints.length; i++) {
 	    ints[i] = i;
 	}
-	CandidateFactory<int[]> factory = new IntArrayFactory(ints, (int) Math.pow(DIMENTIONS, 2));
+	CandidateFactory<int[]> factory = new IntArrayFactory(ints, (int) Math.pow(DIMENSIONS, 2));
 	LinkedList<EvolutionaryOperator<int[]>> operators = new LinkedList<EvolutionaryOperator<int[]>>();
-	//operators.add(new IntArrayCrossover());
+	// operators.add(new IntArrayCrossover());
 	operators.add(new IntArrayMutation(ints, new Probability(mutateProb)));
 
 	EvolutionaryOperator<int[]> pipeline = new EvolutionPipeline<int[]>(operators);
 	FitnessEvaluator<int[]> evaluator = new IntArrayEvaluator();
-	SelectionStrategy<Object> strategy = new TruncationSelection(keepAfterTruncat/C);
+	SelectionStrategy<Object> strategy = new TruncationSelection((keepAfterTruncat / (double) C));
 
 	EvolutionEngine<int[]> engine = new GenerationalEvolutionEngine<int[]>(factory, pipeline, evaluator, strategy,
 		rng);
@@ -93,21 +103,22 @@ class GeneticImage extends JComponent {
 	    public void populationUpdate(PopulationData<? extends int[]> data) {
 		if (data.getGenerationNumber() % displayIter == 0) {
 		    System.out.println("Generation " + data.getGenerationNumber() + " with fitness: "
-			    + data.getBestCandidateFitness());
+			    + (int) data.getBestCandidateFitness());
 		}
 	    }
 	});
 
-	saveImage(engine.evolve(C, 0, new Stagnation(stagnation, true)));
+	int[] imageData = engine.evolve(C, 1, new Stagnation(stagnation, true));
+	//saveImage(imageData);
 	System.out.println("Finished");
+	return imageData;
     }
 
-    static void saveImage(int[] imageData) {
+    public void saveImage(int[] imageData, double name) {
 	try {
-	    BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-	    // retrieve image
-	    image.setRGB(0, 0, WIDTH, HEIGHT, imageData, 0, WIDTH);
-	    ImageIO.write(image, "png", new File("art.png"));
+	    BufferedImage image = new BufferedImage(DIMENSIONS, DIMENSIONS, BufferedImage.TYPE_INT_RGB);
+	    image.setRGB(0, 0, DIMENSIONS, DIMENSIONS, imageData, 0, DIMENSIONS);
+	    ImageIO.write(image, "png", new File("art "+ (int) name +".png"));
 	} catch (IOException e) {
 	    System.out.println("---> CAN'T SAVE FILE <---");
 	}
