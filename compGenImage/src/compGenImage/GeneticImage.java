@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
@@ -27,30 +26,65 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
-    static Random rand = new Random();
-    MersenneTwisterRNG rng = new MersenneTwisterRNG();
+    static MersenneTwisterRNG rng = new MersenneTwisterRNG();
     final static int DIMENTIONS = 50;
+    static int stagnation = 1000;
+    static int keepAfterTruncat = 2;
+    static int C = 100;
+    static double mutateProb = 0.001;
+    static int displayIter = 500;
 
     /**
-     *
+     * default setting all round.
+     */
+    GeneticImage() {
+	startGeneticA();
+    }
+    
+    /**
+     * more options.
      * @param C The number of organisms per generation.
      * @param mutateProb The probability of mutation.
      * @param displayIter How often to display generation number and fitness.
      */
-    GeneticImage(int C, double mutateProb, final int displayIter) {
-
+    GeneticImage(int C, double mutateProb, int displayIter) {
+	GeneticImage.C = C;
+	GeneticImage.mutateProb = mutateProb;
+	GeneticImage.displayIter = displayIter;
+	startGeneticA();
+    }
+    
+    /**
+     * Even more options.
+     * @param C The number of organisms per generation.
+     * @param mutateProb The probability of mutation.
+     * @param displayIter How often to display generation number and fitness.
+     * @param keepAfterTruncat The number of organisms to keep after truncation.
+     * @param stagnation The number of generations after nothing happens, the engine will end.
+     */
+    GeneticImage(int C, double mutateProb, int displayIter, int keepAfterTruncat, int stagnation) {
+	GeneticImage.C = C;
+	GeneticImage.mutateProb = mutateProb;
+	GeneticImage.displayIter = displayIter;
+	GeneticImage.keepAfterTruncat = keepAfterTruncat;
+	GeneticImage.stagnation = stagnation;
+	startGeneticA();
+    }
+    
+    
+    static void startGeneticA() {
 	int[] ints = new int[16777216];
 	for (int i = 0; i < ints.length; i++) {
 	    ints[i] = i;
 	}
 	CandidateFactory<int[]> factory = new IntArrayFactory(ints, (int) Math.pow(DIMENTIONS, 2));
 	LinkedList<EvolutionaryOperator<int[]>> operators = new LinkedList<EvolutionaryOperator<int[]>>();
-	// operators.add(new IntArrayCrossover());
+	//operators.add(new IntArrayCrossover());
 	operators.add(new IntArrayMutation(ints, new Probability(mutateProb)));
 
 	EvolutionaryOperator<int[]> pipeline = new EvolutionPipeline<int[]>(operators);
 	FitnessEvaluator<int[]> evaluator = new IntArrayEvaluator();
-	SelectionStrategy<Object> strategy = new TruncationSelection(0.1);
+	SelectionStrategy<Object> strategy = new TruncationSelection(keepAfterTruncat/C);
 
 	EvolutionEngine<int[]> engine = new GenerationalEvolutionEngine<int[]>(factory, pipeline, evaluator, strategy,
 		rng);
@@ -64,7 +98,7 @@ class GeneticImage extends JComponent {
 	    }
 	});
 
-	saveImage(engine.evolve(C, 0, new Stagnation(1000, true)));
+	saveImage(engine.evolve(C, 0, new Stagnation(stagnation, true)));
 	System.out.println("Finished");
     }
 
