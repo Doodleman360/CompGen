@@ -19,7 +19,6 @@ import org.uncommons.watchmaker.framework.GenerationalEvolutionEngine;
 import org.uncommons.watchmaker.framework.PopulationData;
 import org.uncommons.watchmaker.framework.SelectionStrategy;
 import org.uncommons.watchmaker.framework.operators.EvolutionPipeline;
-import org.uncommons.watchmaker.framework.operators.IntArrayCrossover;
 import org.uncommons.watchmaker.framework.selection.SigmaScaling;
 import org.uncommons.watchmaker.framework.selection.TruncationSelection;
 import org.uncommons.watchmaker.framework.termination.Stagnation;
@@ -27,22 +26,23 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    final static int DIMENSIONS = 50;
-    static int stagnation = 1000;
-    static int keepAfterTruncat = 2;
-    static int C = 100;
-    static double mutateProb = 0.001;
-    static int displayIter = 500;
+    final static int DIMENSIONS = 500;
+    static int stagnation = 100;
+    static int keepAfterTruncat = 5;
+    static int C = 50;
+    static double mutateProb = 0.00002;
+    static int displayIter = 1;
+    static int lastFitness = 0;
 
     /**
-     * default setting all round.
+     * Default setting all round.
      */
     GeneticImage() {
 	//startGeneticA();
     }
 
     /**
-     * more options.
+     * More options.
      * 
      * @param C
      *            The number of organisms per generation.
@@ -82,7 +82,9 @@ class GeneticImage extends JComponent {
 	//startGeneticA();
     }
 
+    @SuppressWarnings("unused")
     int[] startGeneticA() {
+	lastFitness = 0;
 	int[] ints = new int[16777216];
 	for (int i = 0; i < ints.length; i++) {
 	    ints[i] = i;
@@ -94,16 +96,20 @@ class GeneticImage extends JComponent {
 
 	EvolutionaryOperator<int[]> pipeline = new EvolutionPipeline<int[]>(operators);
 	FitnessEvaluator<int[]> evaluator = new IntArrayEvaluator();
-	SelectionStrategy<Object> strategy = new TruncationSelection((keepAfterTruncat / (double) C));
+	FitnessEvaluator<int[]> colorEvaluator = new IntArrayColorEvaluator();
+	SelectionStrategy<Object> truncationStrategy = new TruncationSelection((keepAfterTruncat / (double) C));
+	SelectionStrategy<Object> sigmaStrategy = new SigmaScaling();
 
-	EvolutionEngine<int[]> engine = new GenerationalEvolutionEngine<int[]>(factory, pipeline, evaluator, strategy,
+	EvolutionEngine<int[]> engine = new GenerationalEvolutionEngine<int[]>(factory, pipeline, evaluator, truncationStrategy,
 		rng);
 
 	engine.addEvolutionObserver(new EvolutionObserver<int[]>() {
 	    public void populationUpdate(PopulationData<? extends int[]> data) {
 		if (data.getGenerationNumber() % displayIter == 0) {
 		    System.out.println("Generation " + data.getGenerationNumber() + " with fitness: "
-			    + (int) data.getBestCandidateFitness());
+			    + (int) data.getBestCandidateFitness() + " (+" + ((int) data.getBestCandidateFitness() - lastFitness) + ")");
+		    lastFitness = (int) data.getBestCandidateFitness();
+		    saveImage(data.getBestCandidate(), "");
 		}
 	    }
 	});
