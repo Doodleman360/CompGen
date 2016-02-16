@@ -26,19 +26,18 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    final static int DIMENSIONS = 500;
-    static int stagnation = 100;
+    final static int DIMENSIONS = 20;
+    static int stagnation = 1000;
     static int keepAfterTruncat = 5;
     static int C = 50;
-    static double mutateProb = 0.00002;
-    static int displayIter = 1;
+    static double mutateProb = 0.02;
+    static int displayIter = 500;
     static int lastFitness = 0;
 
     /**
      * Default setting all round.
      */
     GeneticImage() {
-	//startGeneticA();
     }
 
     /**
@@ -55,7 +54,6 @@ class GeneticImage extends JComponent {
 	GeneticImage.C = C;
 	GeneticImage.mutateProb = mutateProb;
 	GeneticImage.displayIter = displayIter;
-	//startGeneticA();
     }
 
     /**
@@ -79,7 +77,6 @@ class GeneticImage extends JComponent {
 	GeneticImage.displayIter = displayIter;
 	GeneticImage.keepAfterTruncat = keepAfterTruncat;
 	GeneticImage.stagnation = stagnation;
-	//startGeneticA();
     }
 
     @SuppressWarnings("unused")
@@ -91,7 +88,6 @@ class GeneticImage extends JComponent {
 	}
 	CandidateFactory<int[]> factory = new IntArrayFactory(ints, (int) Math.pow(DIMENSIONS, 2));
 	LinkedList<EvolutionaryOperator<int[]>> operators = new LinkedList<EvolutionaryOperator<int[]>>();
-	// operators.add(new IntArrayCrossover());
 	operators.add(new IntArrayMutation(ints, new Probability(mutateProb)));
 
 	EvolutionaryOperator<int[]> pipeline = new EvolutionPipeline<int[]>(operators);
@@ -129,4 +125,5 @@ class GeneticImage extends JComponent {
 	    System.out.println("---> CAN'T SAVE FILE <---");
 	}
     }
+
 }

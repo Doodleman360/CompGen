@@ -17,7 +17,7 @@ public class Main {
 	    GeneticImage genI = new GeneticImage();
 	    int[] out = genI.startGeneticA();
 
-	    double fitness = IntArrayColorEvaluator.calcFitness(out);
+	    double fitness = IntArrayEvaluator.calcFitness(out);
 
 	    genI.saveImage(out, "");// (int) fitness + "");
 	    System.out.println("finished (" + fitness + ")");
