@@ -19,7 +19,7 @@ public class Main {
 
 	    double fitness = IntArrayEvaluator.calcFitness(out);
 
-	    genI.saveImage(out, "", genI.imageMult);// (int) fitness + "");
+	    genI.saveImage(out, "final", genI.imageMult);
 	    System.out.println("finished (" + fitness + ")");
     }
     

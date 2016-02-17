@@ -1,5 +1,7 @@
 package compGenImage;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -26,12 +28,12 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    final static int DIMENSIONS = 10;
-    int imageMult = 2;
+    final static int DIMENSIONS = 20;
+    int imageMult = 100;
     static int stagnation = 10000;
     static int keepAfterTruncat = 5;
     static int C = 500;
-    static double mutateProb = 0.02;
+    static double mutateProb = 0.05;
     static int displayIter = 500;
     static int lastFitness = 0;
 
@@ -86,6 +88,8 @@ class GeneticImage extends JComponent {
 
     @SuppressWarnings("unused")
     int[] startGeneticA() {
+	imageMult = (-10/99)*DIMENSIONS+(10000/99);
+	System.out.println("ImageMult: " + imageMult);
 	lastFitness = 0;
 	int[] ints = new int[16777216];
 	for (int i = 0; i < ints.length; i++) {
@@ -111,8 +115,8 @@ class GeneticImage extends JComponent {
 			    + (int) data.getBestCandidateFitness() + " (+"
 			    + ((int) data.getBestCandidateFitness() - lastFitness) + ")");
 		    lastFitness = (int) data.getBestCandidateFitness();
-		    saveImage(data.getBestCandidate(), "", imageMult);
-		    saveImage(data.getBestCandidate(), "1");
+		    saveImage(data.getBestCandidate(), "small");
+		    saveImage(data.getBestCandidate(), "mult", imageMult);
 		}
 	    }
 	});
@@ -134,32 +138,41 @@ class GeneticImage extends JComponent {
     }
 
     public void saveImage(int[] imageData, String name, int mult) {
-	int[] imageDataMult = new int[(DIMENSIONS * mult) * (DIMENSIONS * mult)];
-	int length = (int) Math.sqrt(imageData.length);
-	int lengthMult = (int) Math.sqrt(imageDataMult.length);
-	System.out.println(imageData.length + " " + imageDataMult.length + " " + length + " " + lengthMult);
-	for (int i = 0; i < imageData.length; i++) {
-	    for (int y = ((i / length) * mult); y < (((i / length) * mult) + mult); y++) {
-		for (int x = wrap(i * mult, DIMENSIONS * mult); x < (wrap(i * mult, DIMENSIONS * mult) + mult); x++) {
-		    System.out.println("X: " + x + " Y: " + y + " F(): " + (x + (y * lengthMult)) + " I: " + i);
-		    imageDataMult[x + (y * lengthMult)] = imageData[i];
-		}
-	    }
-	}
+	int newDimensions = DIMENSIONS * mult;
 	try {
-	    BufferedImage image = new BufferedImage(DIMENSIONS * mult, DIMENSIONS * mult, BufferedImage.TYPE_INT_RGB);
-	    image.setRGB(0, 0, DIMENSIONS * mult, DIMENSIONS * mult, imageDataMult, 0, lengthMult);
-	    ImageIO.write(image, "png", new File("art " + name + ".png"));
+	    BufferedImage image = new BufferedImage(DIMENSIONS, DIMENSIONS, BufferedImage.TYPE_INT_RGB);
+	    image.setRGB(0, 0, DIMENSIONS, DIMENSIONS, imageData, 0, DIMENSIONS);
+	    ImageIO.write(getScaledImage(image, newDimensions, newDimensions), "png", new File("art " + name + ".png"));
 	} catch (IOException e) {
 	    System.out.println("---> CAN'T SAVE FILE <---");
 	}
     }
     
-    private int wrap(int number, int max) {
-	int temp = number;
-	while(temp > max) {
-	    temp = temp - max;
-	}
-	return temp;
+    /**
+    * Resizes an image using a Graphics2D object backed by a BufferedImage.
+    * @param srcImg - source image to scale
+    * @param w - desired width
+    * @param h - desired height
+    * @return - the new resized image
+    */
+    private BufferedImage getScaledImage(BufferedImage src, int w, int h){
+        int finalw = w;
+        int finalh = h;
+        double factor = 1.0d;
+        if(src.getWidth() > src.getHeight()){
+            factor = ((double)src.getHeight()/(double)src.getWidth());
+            finalh = (int)(finalw * factor);                
+        }else{
+            factor = ((double)src.getWidth()/(double)src.getHeight());
+            finalw = (int)(finalh * factor);
+        }   
+
+        BufferedImage resizedImg = new BufferedImage(finalw, finalh, BufferedImage.TRANSLUCENT);
+        Graphics2D g2 = resizedImg.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g2.drawImage(src, 0, 0, finalw, finalh, null);
+        g2.dispose();
+        return resizedImg;
     }
+   
 }
