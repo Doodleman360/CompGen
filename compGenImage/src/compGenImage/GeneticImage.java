@@ -28,9 +28,9 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    final static int DIMENSIONS = 20;
+    final static int DIMENSIONS = 10;
     int imageMult = 100;
-    static int stagnation = 10000;
+    static int stagnation = 1000;
     static int keepAfterTruncat = 5;
     static int C = 500;
     static double mutateProb = 0.05;
@@ -88,16 +88,18 @@ class GeneticImage extends JComponent {
 
     @SuppressWarnings("unused")
     int[] startGeneticA() {
-	imageMult = (-10/99)*DIMENSIONS+(10000/99);
-	System.out.println("ImageMult: " + imageMult);
 	lastFitness = 0;
-	int[] ints = new int[16777216];
-	for (int i = 0; i < ints.length; i++) {
-	    ints[i] = i;
+	int[] intsColor = new int[16777216];
+	for (int i = 0; i < intsColor.length; i++) {
+	    intsColor[i] = i;
 	}
-	CandidateFactory<int[]> factory = new IntArrayFactory(ints, (int) Math.pow(DIMENSIONS, 2));
+	int[] intsGray = new int[255];
+	for (int i = 0; i < intsGray.length; i++) {
+	    intsGray[i] = (i << 16) | (i << 8) | i;
+	}
+	CandidateFactory<int[]> factory = new IntArrayFactory(intsColor, (int) Math.pow(DIMENSIONS, 2));
 	LinkedList<EvolutionaryOperator<int[]>> operators = new LinkedList<EvolutionaryOperator<int[]>>();
-	operators.add(new IntArrayMutation(ints, new Probability(mutateProb)));
+	operators.add(new IntArrayMutation(intsGray, new Probability(mutateProb)));
 
 	EvolutionaryOperator<int[]> pipeline = new EvolutionPipeline<int[]>(operators);
 	FitnessEvaluator<int[]> evaluator = new IntArrayEvaluator();
@@ -147,32 +149,36 @@ class GeneticImage extends JComponent {
 	    System.out.println("---> CAN'T SAVE FILE <---");
 	}
     }
-    
-    /**
-    * Resizes an image using a Graphics2D object backed by a BufferedImage.
-    * @param srcImg - source image to scale
-    * @param w - desired width
-    * @param h - desired height
-    * @return - the new resized image
-    */
-    private BufferedImage getScaledImage(BufferedImage src, int w, int h){
-        int finalw = w;
-        int finalh = h;
-        double factor = 1.0d;
-        if(src.getWidth() > src.getHeight()){
-            factor = ((double)src.getHeight()/(double)src.getWidth());
-            finalh = (int)(finalw * factor);                
-        }else{
-            factor = ((double)src.getWidth()/(double)src.getHeight());
-            finalw = (int)(finalh * factor);
-        }   
 
-        BufferedImage resizedImg = new BufferedImage(finalw, finalh, BufferedImage.TRANSLUCENT);
-        Graphics2D g2 = resizedImg.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g2.drawImage(src, 0, 0, finalw, finalh, null);
-        g2.dispose();
-        return resizedImg;
+    /**
+     * Resizes an image using a Graphics2D object backed by a BufferedImage.
+     * 
+     * @param srcImg
+     *            - source image to scale
+     * @param w
+     *            - desired width
+     * @param h
+     *            - desired height
+     * @return - the new resized image
+     */
+    private BufferedImage getScaledImage(BufferedImage src, int w, int h) {
+	int finalw = w;
+	int finalh = h;
+	double factor = 1.0d;
+	if (src.getWidth() > src.getHeight()) {
+	    factor = ((double) src.getHeight() / (double) src.getWidth());
+	    finalh = (int) (finalw * factor);
+	} else {
+	    factor = ((double) src.getWidth() / (double) src.getHeight());
+	    finalw = (int) (finalh * factor);
+	}
+
+	BufferedImage resizedImg = new BufferedImage(finalw, finalh, BufferedImage.TRANSLUCENT);
+	Graphics2D g2 = resizedImg.createGraphics();
+	g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+	g2.drawImage(src, 0, 0, finalw, finalh, null);
+	g2.dispose();
+	return resizedImg;
     }
-   
+
 }
