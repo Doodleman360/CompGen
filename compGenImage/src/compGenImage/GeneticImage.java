@@ -26,13 +26,16 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    final static int DIMENSIONS = 20;
-    static int stagnation = 1000;
+    final static int DIMENSIONS = 10;
+    int imageMult = 2;
+    static int stagnation = 10000;
     static int keepAfterTruncat = 5;
-    static int C = 50;
+    static int C = 500;
     static double mutateProb = 0.02;
     static int displayIter = 500;
     static int lastFitness = 0;
+
+    // Constructors
 
     /**
      * Default setting all round.
@@ -79,6 +82,8 @@ class GeneticImage extends JComponent {
 	GeneticImage.stagnation = stagnation;
     }
 
+    // Main
+
     @SuppressWarnings("unused")
     int[] startGeneticA() {
 	lastFitness = 0;
@@ -96,34 +101,65 @@ class GeneticImage extends JComponent {
 	SelectionStrategy<Object> truncationStrategy = new TruncationSelection((keepAfterTruncat / (double) C));
 	SelectionStrategy<Object> sigmaStrategy = new SigmaScaling();
 
-	EvolutionEngine<int[]> engine = new GenerationalEvolutionEngine<int[]>(factory, pipeline, evaluator, truncationStrategy,
-		rng);
+	EvolutionEngine<int[]> engine = new GenerationalEvolutionEngine<int[]>(factory, pipeline, evaluator,
+		truncationStrategy, rng);
 
 	engine.addEvolutionObserver(new EvolutionObserver<int[]>() {
 	    public void populationUpdate(PopulationData<? extends int[]> data) {
 		if (data.getGenerationNumber() % displayIter == 0) {
 		    System.out.println("Generation " + data.getGenerationNumber() + " with fitness: "
-			    + (int) data.getBestCandidateFitness() + " (+" + ((int) data.getBestCandidateFitness() - lastFitness) + ")");
+			    + (int) data.getBestCandidateFitness() + " (+"
+			    + ((int) data.getBestCandidateFitness() - lastFitness) + ")");
 		    lastFitness = (int) data.getBestCandidateFitness();
-		    saveImage(data.getBestCandidate(), "");
+		    saveImage(data.getBestCandidate(), "", imageMult);
+		    saveImage(data.getBestCandidate(), "1");
 		}
 	    }
 	});
 
 	int[] imageData = engine.evolve(C, 1, new Stagnation(stagnation, true));
-	//saveImage(imageData);
-	//System.out.println("Finished");
 	return imageData;
     }
+
+    // Support
 
     public void saveImage(int[] imageData, String name) {
 	try {
 	    BufferedImage image = new BufferedImage(DIMENSIONS, DIMENSIONS, BufferedImage.TYPE_INT_RGB);
 	    image.setRGB(0, 0, DIMENSIONS, DIMENSIONS, imageData, 0, DIMENSIONS);
-	    ImageIO.write(image, "png", new File("art "+ name +".png"));
+	    ImageIO.write(image, "png", new File("art " + name + ".png"));
 	} catch (IOException e) {
 	    System.out.println("---> CAN'T SAVE FILE <---");
 	}
     }
 
+    public void saveImage(int[] imageData, String name, int mult) {
+	int[] imageDataMult = new int[(DIMENSIONS * mult) * (DIMENSIONS * mult)];
+	int length = (int) Math.sqrt(imageData.length);
+	int lengthMult = (int) Math.sqrt(imageDataMult.length);
+	System.out.println(imageData.length + " " + imageDataMult.length + " " + length + " " + lengthMult);
+	for (int i = 0; i < imageData.length; i++) {
+	    for (int y = ((i / length) * mult); y < (((i / length) * mult) + mult); y++) {
+		for (int x = wrap(i * mult, DIMENSIONS * mult); x < (wrap(i * mult, DIMENSIONS * mult) + mult); x++) {
+		    System.out.println("X: " + x + " Y: " + y + " F(): " + (x + (y * lengthMult)) + " I: " + i);
+		    imageDataMult[x + (y * lengthMult)] = imageData[i];
+		}
+	    }
+	}
+	try {
+	    BufferedImage image = new BufferedImage(DIMENSIONS * mult, DIMENSIONS * mult, BufferedImage.TYPE_INT_RGB);
+	    image.setRGB(0, 0, DIMENSIONS * mult, DIMENSIONS * mult, imageDataMult, 0, lengthMult);
+	    ImageIO.write(image, "png", new File("art " + name + ".png"));
+	} catch (IOException e) {
+	    System.out.println("---> CAN'T SAVE FILE <---");
+	}
+    }
+    
+    private int wrap(int number, int max) {
+	int temp = number;
+	while(temp > max) {
+	    temp = temp - max;
+	}
+	return temp;
+    }
 }

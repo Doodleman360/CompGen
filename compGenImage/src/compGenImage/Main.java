@@ -19,7 +19,7 @@ public class Main {
 
 	    double fitness = IntArrayEvaluator.calcFitness(out);
 
-	    genI.saveImage(out, "");// (int) fitness + "");
+	    genI.saveImage(out, "", genI.imageMult);// (int) fitness + "");
 	    System.out.println("finished (" + fitness + ")");
     }
     
@@ -38,7 +38,7 @@ public class Main {
 
 	    double fitness = IntArrayEvaluator.calcFitness(out);
 
-	    genI.saveImage(out, "");// (int) fitness + "");
+	    genI.saveImage(out, "", genI.imageMult);// (int) fitness + "");
 	    System.out.println("finished (" + (fitness - best[0]) + ")");
 	    
 	    if(best[0] < fitness) {
