@@ -34,7 +34,7 @@ class GeneticImage extends JComponent {
     static int keepAfterTruncat = 5;
     static int C = 500;
     static double mutateProb = 0.0005;
-    static int displayIter = 100;
+    static int displayIter = 10;
     static int lastFitness = 0;
 
     // Constructors

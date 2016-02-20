@@ -16,18 +16,11 @@ public class IntArrayEvaluator implements FitnessEvaluator<int[]> {
 	double fitness = 0;
 	int imageWidth = (int) Math.sqrt(candidate.length);
 	for (int i = 0; i < candidate.length - 1; i++) {
-	    if (i / imageWidth != 1) {
-		if (compare(candidate, i, i + 1)) {
-		    fitness++;
-		    if(i + 1  < candidate.length - imageWidth) {
-			if(compare(candidate, i, i + imageWidth + 1)) {
-				fitness++;
-		    	}
-		    }
-		}
+	    if (compare(candidate, i, i + 1)) {
+		fitness++;
 	    }
 	    if (i < candidate.length - imageWidth) {
-		if (compare(candidate, i, i+imageWidth)) {
+		if (compare(candidate, i, i + imageWidth)) {
 		    fitness++;
 		}
 	    }
