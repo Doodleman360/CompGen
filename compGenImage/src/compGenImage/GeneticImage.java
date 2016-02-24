@@ -28,13 +28,13 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    final static int DIMENSIONS = 100;
+    static int DIMENSIONS = 100;
     int imageMult = 10;
     static int stagnation = 1000;
     static int keepAfterTruncat = 5;
     static int C = 500;
     static double mutateProb = 0.0005;
-    static int displayIter = 10;
+    static int displayIter = 1000;
     static int lastFitness = 0;
 
     // Constructors
@@ -43,6 +43,18 @@ class GeneticImage extends JComponent {
      * Default setting all round.
      */
     GeneticImage() {
+    }
+
+    /**
+     * just dimension and mutateProb.
+     * 
+     * @param DIMENSIONS
+     * @param mutateProb
+     *            The probability of mutation.
+     */
+    GeneticImage(int DIMENSIONS, double mutateProb) {
+	GeneticImage.mutateProb = mutateProb;
+	GeneticImage.DIMENSIONS = DIMENSIONS;
     }
 
     /**
@@ -76,12 +88,13 @@ class GeneticImage extends JComponent {
      *            The number of generations after nothing happens, the engine
      *            will end.
      */
-    GeneticImage(int C, double mutateProb, int displayIter, int keepAfterTruncat, int stagnation) {
+    GeneticImage(int C, double mutateProb, int displayIter, int keepAfterTruncat, int stagnation, int DIMENSIONS) {
 	GeneticImage.C = C;
 	GeneticImage.mutateProb = mutateProb;
 	GeneticImage.displayIter = displayIter;
 	GeneticImage.keepAfterTruncat = keepAfterTruncat;
 	GeneticImage.stagnation = stagnation;
+	GeneticImage.DIMENSIONS = DIMENSIONS;
     }
 
     // Main
