@@ -28,12 +28,12 @@ import org.uncommons.watchmaker.framework.termination.Stagnation;
 @SuppressWarnings("serial")
 class GeneticImage extends JComponent {
     static MersenneTwisterRNG rng = new MersenneTwisterRNG();
-    static int DIMENSIONS = 100;
+    static int DIMENSIONS = 20;
     int imageMult = 10;
     static int stagnation = 1000;
     static int keepAfterTruncat = 5;
     static int C = 500;
-    static double mutateProb = 0.0005;
+    static double mutateProb = 0.01;
     static int displayIter = 1000;
     static int lastFitness = 0;
 
@@ -110,9 +110,9 @@ class GeneticImage extends JComponent {
 	for (int i = 0; i < intsGray.length; i++) {
 	    intsGray[i] = (i << 16) | (i << 8) | i;
 	}
-	CandidateFactory<int[]> factory = new IntArrayFactory(intsGray, (int) Math.pow(DIMENSIONS, 2));
+	CandidateFactory<int[]> factory = new IntArrayFactory(intsColor, (int) Math.pow(DIMENSIONS, 2));
 	LinkedList<EvolutionaryOperator<int[]>> operators = new LinkedList<EvolutionaryOperator<int[]>>();
-	operators.add(new IntArrayMutation(intsGray, new Probability(mutateProb)));
+	operators.add(new IntArrayMutation(intsColor, new Probability(mutateProb)));
 
 	EvolutionaryOperator<int[]> pipeline = new EvolutionPipeline<int[]>(operators);
 	FitnessEvaluator<int[]> evaluator = new IntArrayEvaluator();
