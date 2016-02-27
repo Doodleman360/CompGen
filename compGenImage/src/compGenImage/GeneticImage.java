@@ -110,9 +110,9 @@ class GeneticImage extends JComponent {
 	for (int i = 0; i < intsGray.length; i++) {
 	    intsGray[i] = (i << 16) | (i << 8) | i;
 	}
-	CandidateFactory<int[]> factory = new IntArrayFactory(intsColor, (int) Math.pow(DIMENSIONS, 2));
+	CandidateFactory<int[]> factory = new IntArrayFactory(intsGray, (int) Math.pow(DIMENSIONS, 2));
 	LinkedList<EvolutionaryOperator<int[]>> operators = new LinkedList<EvolutionaryOperator<int[]>>();
-	operators.add(new IntArrayMutation(intsColor, new Probability(mutateProb)));
+	operators.add(new IntArrayMutation(intsGray, new Probability(mutateProb)));
 
 	EvolutionaryOperator<int[]> pipeline = new EvolutionPipeline<int[]>(operators);
 	FitnessEvaluator<int[]> evaluator = new IntArrayEvaluator();
